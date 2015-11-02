@@ -7,11 +7,9 @@ class Subject(models.Model):
 	owner = models.ForeignKey('auth.User', related_name='subjects')
 
 	# Receiver is the user who receives the question and get access to this subject (visible)
-
 	# receiver = models.ForeignKey('')
 
 	# A question can be resolved when its answered, this boolean will tell if it is
-	
 	resolved = models.BooleanField(default=False)
 
 
@@ -28,8 +26,6 @@ class Question(models.Model):
 	# answerer = models.ForeignKey('User')
 	# answered = BooleanField(initital=True)
 
+
 	class Meta:
 		ordering = ('-created',)
-
-# class Friends(models.Model):
-# 	users = models.ManyToMany(User, related_name='friends')
