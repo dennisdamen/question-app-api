@@ -16,10 +16,9 @@ class SubjectSerializer(serializers.ModelSerializer):
 		fields = ('id', 'title', 'questions', 'created', 'lastEdited')
 
 class UserSerializer(serializers.ModelSerializer):
-	# subjects = serializers.PrimaryKeyRelatedField(many=True, queryset=Subject.objects.all())
 	subjects = serializers.PrimaryKeyRelatedField(many=True, queryset=Subject.objects.all())
 	owner = serializers.ReadOnlyField(source='owner.username')
 
 	class Meta:
 		model = User
-		fields = ('id', 'username', 'subjects', 'owner')
+		fields = ('id', 'username', 'email', 'subjects', 'owner')
