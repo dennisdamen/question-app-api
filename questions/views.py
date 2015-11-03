@@ -9,7 +9,7 @@ from rest_framework import permissions
 from django.contrib.auth.models import User
 from questions.permissions import IsOwnerOrReadOnly
 
-class SubjectList(	generics.ListCreateAPIView):
+class SubjectList(generics.ListCreateAPIView):
 	queryset = Subject.objects.all()
 	serializer_class = SubjectSerializer
 	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)

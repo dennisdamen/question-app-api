@@ -1,4 +1,8 @@
 from django.db import models
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
 
 class Subject(models.Model):
 	created = models.DateTimeField(auto_now_add=True)
@@ -7,7 +11,7 @@ class Subject(models.Model):
 	owner = models.ForeignKey('auth.User', related_name='subjects')
 
 	# Receiver is the user who receives the question and get access to this subject (visible)
-	# receiver = models.ForeignKey('')
+	# receiver = models.ForeignKey('auth.User')
 
 	# A question can be resolved when its answered, this boolean will tell if it is
 	resolved = models.BooleanField(default=False)
@@ -29,3 +33,9 @@ class Question(models.Model):
 
 	class Meta:
 		ordering = ('-created',)
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
