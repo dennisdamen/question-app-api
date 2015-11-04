@@ -1,41 +1,43 @@
-from django.shortcuts import render
-from questions.models import Subject
-from questions.models import Question
+from questions.models import Subject, Question, User
 from questions.serializers import QuestionSerializer
 from questions.serializers import SubjectSerializer
+from rest_framework.decorators import list_route
 from questions.serializers import UserSerializer
-from rest_framework import generics
+from rest_framework import mixins, viewsets
 from rest_framework import permissions
-from django.contrib.auth.models import User
 from questions.permissions import IsOwnerOrReadOnly
+from .filters import IsUserQuestionsOnlyFilter, IsUserSubjectsOnlyFilter, IsUserNextActionOnly
 
-class SubjectList(generics.ListCreateAPIView):
-	queryset = Subject.objects.all()
-	serializer_class = SubjectSerializer
-	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+class QuestionViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
+					  viewsets.GenericViewSet):
+	serializer_class = QuestionSerializer
+	queryset = Question.objects.all()
+	filter_backends = (IsUserQuestionsOnlyFilter, )
+	permission_classes = (IsOwnerOrReadOnly, )
 
 	def perform_create(self, serializer):
 		serializer.save(owner=self.request.user)
 
-class SubjectDetail(generics.RetrieveUpdateDestroyAPIView):
-	queryset = Subject.objects.all()
+
+class SubjectViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, 
+					 mixins.CreateModelMixin, viewsets.GenericViewSet):
 	serializer_class = SubjectSerializer
-	permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
+	queryset = Subject.objects.all()
+	filter_backends = (IsUserSubjectsOnlyFilter, )
+	permission_classes = (IsOwnerOrReadOnly, )
 
-class QuestionList(generics.ListCreateAPIView):
-	queryset = Question.objects.all()
-	serializer_class = QuestionSerializer
-	permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+	@list_route(methods=['GET'])
+	def inbox(self, request):
+		self.filter_backends = (IsUserSubjectsOnlyFilter, IsUserNextActionOnly)
+		return super(SubjectViewSet, self).list(request)
 
-class QuestionDetail(generics.RetrieveUpdateDestroyAPIView):
-	queryset = Question.objects.all()
-	serializer_class = QuestionSerializer
-	permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
+	def perform_create(self, serializer):
+		serializer.save(owner=self.request.user)
 
-class UserList(generics.ListAPIView):
-	queryset = User.objects.all()
+
+class UserViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin,
+				  viewsets.GenericViewSet):
 	serializer_class = UserSerializer
-
-class UserDetail(generics.RetrieveAPIView):
 	queryset = User.objects.all()
-	serializer_class = UserSerializer
+	permission_classes = (IsOwnerOrReadOnly, )
